@@ -1,0 +1,65 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Virtual environment
+.venv/
+venv/
+
+# Database files
+*.db
+*.sqlite
+
+# IDE
+.vscode/
+.idea/
+
+# System
+Thumbs.db
+.DS_Store
+
+# Uploaded images (runtime data)
+uploads/
+
+# ESP32 firmware & config
+esp32/*.bin
+esp32/config.py
+
+# STM32 build artifacts
+stm32/build/
+stm32/Core_backup*/
+stm32/Debug/
+
+# Node
+frontend/node_modules/
+frontend/dist/
+
+# AI / private files (never commit)
+.superpowers/
+brainstorm/
+instructions/
+skills/
+.github/
+
+# Temp / debugging files
+temp_check.py
+_fix_fruit.py
+__esp32_config_tmp__.py
+__maix_tmp__.py
+api-test.http
+
+# Personal documents / screenshots
+*.docx
+*.png
+*.jpg
+*.jpeg
+!**/docs/*.png
+!**/docs/*.jpg
+
+# Runtime artifacts
+agri_robot.d
+agri_robot.db

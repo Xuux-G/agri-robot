@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== Agri Guardian 设计系统 =====
+   土色系 + 噪点纹理 + 非对称布局
+   参考: agri.cn / amic.agri.cn / bh.ainyi.cn
+   ================================== */
+:root {
+  --soil-dark: #3B6B3B;
+  --soil-mid: #5a8f3c;
+  --soil-light: #7CB342;
+  --leaf: #4a6740;
+  --leaf-light: #6b8a65;
+  --wheat: #f5f0e0;
+  --wheat-dark: #e8dcc8;
+  --sky: #e8f0e3;
+  --sky-dark: #c8d8c0;
+  --danger: #c62828;
+  --warning: #e65100;
+  --card-bg: rgba(255,255,255,0.72);
+  --border: rgba(59, 107, 59, 0.1);
+  --text: #2d4a22;
+  --muted: #6b8a65;
+  --font-stack: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", system-ui, -apple-system, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-stack);
+  color: var(--text);
+  background:
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E"),
+    /* 模拟稻田远景：天空→远山→田地→泥土 */
+    linear-gradient(180deg,
+      #f7f3ea 0%,
+      #eef5e9 20%,
+      #e2edd8 45%,
+      #d5e3c5 65%,
+      #c8d8b5 82%,
+      #b5c5a2 100%
+    );
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+/* 滚动条风格 */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(59,107,59,0.2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(59,107,59,0.35); }
