@@ -1,95 +1,95 @@
-# MaixCam2 AI Vision Module
+# MaixCam2 AI 视觉模块
 
-YOLOv5-based pest detection and visual servoing on the Sipeed MaixCam2. Controls camera approach, identifies crop diseases in real time, and uploads annotated images to the base station.
+机器人的"眼睛"。用 YOLOv5 检测作物病虫害，同时通过 HSV 颜色分割引导机器人靠近目标。装在摄像头云台上，和 STM32 之间用 UART 通信。
 
-## Hardware
+## 硬件
 
-- **Module**: Sipeed MaixCam2 (AX630C NPU)
-- **Resolution**: 640x480 camera input, 320x224 model input
-- **Interface**: UART4 (GPIO A21/A22) to STM32, WiFi to base station
+- **模块**: Sipeed MaixCam2（AX630C NPU）
+- **分辨率**: 摄像头输入 640×480，模型输入 320×224
+- **通信**: UART4 (GPIO A21/A22) 接 STM32，WiFi 接基站
 
-## Model
+## 模型
 
-Custom YOLOv5 model trained with MaixHub, exported as:
+用 MaixHub 训练的 YOLOv5，导出为：
 
-| File | Size | Purpose |
-|------|------|---------|
-| `model_292463.mud` | <1 KB | Model metadata / class definitions |
-| `model_292463_npu.axmodel` | 6.9 MB | NPU-optimized inference model |
-| `model_292463_vnpu.axmodel` | 7.3 MB | VNPU variant for fallback |
+| 文件 | 大小 | 说明 |
+|------|------|------|
+| `model_292463.mud` | <1 KB | 模型元数据 / 类别定义 |
+| `model_292463_npu.axmodel` | 6.9 MB | NPU 推理模型 |
+| `model_292463_vnpu.axmodel` | 7.3 MB | VNPU 备用模型 |
 
-### Detection Classes
+### 检测类别
 
-| Class ID | Label | Chinese | Category |
-|----------|-------|---------|----------|
-| 0 | heban | Brown Spot | Disease |
-| 1 | baifen | Powdery Mildew | Disease |
-| 2 | caiqingchong | Cabbage Worm | Pest |
-| 3 | woniu | Snail | Pest |
-| — | mihoutao | Kiwi | Fruit (for block mapping) |
-| — | juzi | Orange | Fruit (for block mapping) |
+| Class ID | Label | 中文 | 类型 |
+|----------|-------|------|------|
+| 0 | heban | 褐斑病 | 病害 |
+| 1 | baifen | 白粉病 | 病害 |
+| 2 | caiqingchong | 菜青虫 | 虫害 |
+| 3 | woniu | 蜗牛 | 虫害 |
 
-## Visual Servoing Pipeline
+模型也支持猕猴桃和橘子的果实识别，用于地块作物类型匹配。
 
-The camera executes a multi-stage approach for each crop:
+## 视觉引导流程
 
-1. **ALIGN** — Detect green plant mass, compute horizontal offset, send X-axis correction to STM32
-2. **MOVE_MONITOR** — Advance forward while tracking green area; lateral micro-corrections to stay centered
-3. **DETECT** — Stop when green area exceeds threshold (~32%), run continuous YOLO inference
-4. **UPLOAD** — For each pest class, track the best detection frame and upload to base station
-5. **EXIT** — Signal STM32 to retract and move to next tree
+摄像头对每棵树执行多阶段引导：
 
-### Color-based Targeting
+1. **ALIGN** — 检测绿色植物区域，计算水平偏移量，发 X 轴修正指令给 STM32
+2. **MOVE_MONITOR** — 前进过程中持续跟踪绿色区域面积，做横向微调保持居中
+3. **DETECT** — 绿色面积超过阈值（~32%）时停下，连续跑 YOLO 推理
+4. **UPLOAD** — 对每种病虫害保留最佳检测帧，上传到基站
+5. **EXIT** — 发信号给 STM32 回撤，前往下一棵树
 
-Before YOLO runs, the system uses HSV color segmentation to locate crops:
+### 颜色定位
 
-- Green channel extraction with luminance/delta thresholds
-- Horizontal band decomposition to separate individual plants
-- Area-based scoring (proximity to center, size, tracking penalty)
-- Moving median filter to suppress frame-to-frame jitter
+在 YOLO 运行之前，先用 HSV 色彩空间分割定位作物：
 
-Key tunable parameters are defined at the top of `main.py`.
+- 绿色通道提取（亮度和 delta 阈值过滤）
+- 水平分层分解，区分不同植株
+- 面积评分（中心距、尺寸、跟踪惩罚）
+- 移动中值滤波抑制帧间抖动
 
-## UART Protocol (to STM32)
+相关参数都在 `main.py` 顶部定义，可以直接调。
+
+## 与 STM32 的 UART 协议
 
 ```
 AA AA x_dir y_dir x_dist_h x_dist_l y_dist_h y_dist_l flag FF FF
 
-flag values:
-  0 = motion command
-  1 = stop / target acquired / begin detection
-  2 = target lost, stop
-  3 = too close, back off / safety stop
-  4 = tree complete, retract
+flag 含义：
+  0 = 运动指令
+  1 = 停下 / 目标锁定 / 开始检测
+  2 = 目标丢失，停车
+  3 = 距离过近，后退 / 安全停车
+  4 = 本棵树完成，回撤
 ```
 
-## Base Station Upload
+## 图片上传
 
-Images are uploaded to `http://<BASE_STATION_IP>:8000/api/device/images` as multipart/form-data:
+上传到 `http://<BASE_STATION_IP>:8000/api/device/images`，multipart/form-data 格式：
 
 ```
 POST /api/device/images
 Content-Type: multipart/form-data
 
-Fields:
-  event_id: string (must match existing device event)
-  pest_type: string (detected class label)
+字段：
+  event_id: string（需匹配已有的设备事件）
+  pest_type: string（检测到的类别标签）
   file: image/jpeg
 ```
 
-## Setup
+## 部署
 
-1. Flash firmware via MaixHub or `maixcam2_7_26` package
-2. Edit `BASE_URL` in `main.py` to point to your base station
-3. Upload all files to the device
-4. Reboot — the camera waits for STM32 READY signal before starting
+1. 用 MaixHub 或 `maixcam2_7_26` 包烧录固件
+2. 把 `main.py` 里的 `BASE_URL` 改成你的基站地址
+3. 上传所有文件到设备
+4. 重启 — 摄像头会等 STM32 的 READY 信号才启动
 
-## Configuration Reference
+## 关键可调参数
 
-All behavioral parameters are in the top section of `main.py`:
+`main.py` 顶部的几个参数直接影响行为：
 
-- `DETECT_CONF_TH` (0.60) — confidence threshold for pest detection
-- `STOP_AREA` (0.32) — green fill ratio that triggers stop-and-detect
-- `DETECT_EXIT_NO_GREEN_MS` (1200) — timeout before concluding tree is done
-- `FORWARD_TRAVEL_DIST` (18) — max forward travel per tree
-- `UPLOAD_COOL` (5000) — minimum interval between image uploads (ms)
+- `DETECT_CONF_TH` (0.60) — YOLO 检测置信度阈值
+- `STOP_AREA` (0.32) — 绿色占比触发停车的阈值
+- `DETECT_EXIT_NO_GREEN_MS` (1200) — 连续无绿色多久判定树已完成
+- `FORWARD_TRAVEL_DIST` (18) — 每棵树最大前进距离
+- `UPLOAD_COOL` (5000) — 图片上传最小间隔 (ms)

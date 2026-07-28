@@ -1,8 +1,8 @@
 # Smart Agri Robot
 
-An autonomous agricultural spraying robot system integrating STM32 motion control, ESP32 connectivity, MaixCam2 AI vision, and a FastAPI + Vue.js base station dashboard.
+这是一个自主农药喷洒机器人的全套控制系统。我独立完成了从 STM32 底层驱动、ESP32 通信桥接、MaixCam2 视觉识别到 FastAPI + Vue 管理后台的全部开发。
 
-Designed for precision agriculture: NFC-tagged plot identification, YOLO-based pest detection, multi-channel pump dosing, and real-time farm management.
+机器人通过 NFC 识别地块，MaixCam2 做 YOLOv5 病虫害检测，三通道蠕动泵按处方配药，基站实时监控整个农场状态。
 
 ## System Architecture
 
@@ -16,54 +16,56 @@ graph LR
     ESP32 -- UART --> Voice[CI1302<br/>Voice Module]
 ```
 
-## Modules
-
-| Module | Directory | Description |
-|--------|-----------|-------------|
-| **Base Station** | [`base-station/`](base-station/) | Backend API server + Vue 3 management dashboard |
-| **ESP32 Firmware** | [`esp32/`](esp32/) | MicroPython firmware for WiFi connectivity and UART bridging |
-| **MaixCam2 Vision** | [`maixcam2/`](maixcam2/) | YOLOv5 pest detection with visual servoing for autonomous approach |
-| **STM32 Control** | [`stm32/`](stm32/) | Main motion controller: motors, servos, pumps, NFC, sensors |
-
 ## Hardware
 
-- **MCU**: STM32H7B0VBTx (ARM Cortex-M7)
-- **WiFi/Bridge**: ESP32-S3-N16R8 (MicroPython)
-- **Vision**: Sipeed MaixCam2 (AX630C + YOLOv5)
-- **Peripherals**: PN532 NFC, CI1302 voice, WS2812B RGB, HC-SR04 ultrasonic, JY61 IMU, peristaltic pumps x3
+| Component | Chip/Module | Role |
+|-----------|-------------|------|
+| Main Controller | STM32H7B0VBTx (M7, 280MHz) | Motor, servo, pump, NFC, sensors |
+| Communication | ESP32-S3-N16R8 | WiFi bridge, UART hub, voice relay |
+| Vision | Sipeed MaixCam2 (AX630C NPU) | YOLOv5 pest detection, visual servoing |
+| Peripherals | PN532, CI1302, WS2812B, HC-SR04, JY61 | NFC read, voice broadcast, RGB status, distance, IMU |
+
+## Modules
+
+| Module | Directory | What's Inside |
+|--------|-----------|---------------|
+| Base Station | [`base-station/`](base-station/) | FastAPI backend + Vue 3 dashboard |
+| ESP32 Firmware | [`esp32/`](esp32/) | MicroPython, UART bridging, HTTP client |
+| MaixCam2 Vision | [`maixcam2/`](maixcam2/) | YOLOv5 model, visual servoing pipeline |
+| STM32 Control | [`stm32/`](stm32/) | HAL-based motor/spray/sensor firmware |
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|------------|
-| Backend | Python FastAPI, SQLite (raw SQL) |
-| Frontend | Vue 3 (Composition API), Vite, Vue Router, Tailwind CSS |
+| Backend | Python FastAPI + SQLite (raw SQL) |
+| Frontend | Vue 3 (Composition API) + Vite + Tailwind CSS |
 | ESP32 | MicroPython |
-| STM32 | C, STM32CubeMX, HAL, CMake |
-| Vision | MaixPy, YOLOv5, UART serial protocol |
-
-## Quick Start
-
-Each module has its own README with setup instructions:
-
-- [Base Station Setup](base-station/README.md)
-- [ESP32 Firmware Setup](esp32/README.md)
-- [MaixCam2 Vision Setup](maixcam2/README.md)
-- [STM32 Build Guide](stm32/README.md)
+| STM32 | C, STM32CubeMX HAL, CMake, arm-none-eabi-gcc |
+| Vision | MaixPy, YOLOv5, custom HSV pre-filter |
 
 ## Workflow
 
-1. **NFC Scan** — STM32 reads plot NFC tag, sends block ID to ESP32 via UART
-2. **Event Upload** — ESP32 POSTs device event to base station over WiFi
-3. **Visual Inspection** — MaixCam2 approaches crop, runs YOLO detection, uploads images
-4. **Prescription** — Base station computes dosing plan (PHI safety lock, resistance prevention)
-5. **Spray Execution** — ESP32 polls for prescription, relays to STM32, 3-channel pump mixing
-6. **Write-back** — Operation log uploaded, dashboard updated in real time
+1. **NFC 识别** — STM32 读取地块 NFC 标签，通过 UART 传给 ESP32
+2. **事件上报** — ESP32 通过 WiFi 向基站 POST 设备事件
+3. **视觉检测** — MaixCam2 靠近作物，YOLO 检测病虫害，上传图片
+4. **处方计算** — 基站根据病虫害类型、农药安全间隔期计算配药方案
+5. **执行喷洒** — ESP32 轮询处方，下发给 STM32，三通道泵按比例混合喷洒
+6. **回写记录** — 操作日志上传，仪表盘实时刷新
+
+## Quick Start
+
+每个模块有自己的 README，包含接线、编译和运行说明：
+
+- [Base Station](base-station/README.md)
+- [ESP32 Firmware](esp32/README.md)
+- [MaixCam2 Vision](maixcam2/README.md)
+- [STM32 Control](stm32/README.md)
 
 ## License
 
-MIT — see [LICENSE](LICENSE)
+MIT — [LICENSE](LICENSE)
 
 ---
 
-*Independently designed and developed as a full-stack embedded-AI system.*
+*本项目由我个人独立设计并开发完成。*

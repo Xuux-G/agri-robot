@@ -57,8 +57,17 @@ api-test.http
 *.png
 *.jpg
 *.jpeg
+*.gif
+*.webp
+*.mp4
+*.mov
 !**/docs/*.png
 !**/docs/*.jpg
+!**/docs/*.jpeg
+!**/docs/*.gif
+!**/docs/*.webp
+!**/docs/*.mp4
+!**/docs/*.mov
 
 # Runtime artifacts
 agri_robot.d
