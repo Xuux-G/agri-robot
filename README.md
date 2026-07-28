@@ -1,6 +1,6 @@
 # Smart Agri Robot
 
-这是一个自主农药喷洒机器人的全套控制系统。我独立完成了从 STM32 底层驱动、ESP32 通信桥接、MaixCam2 视觉识别到 FastAPI + Vue 管理后台的全部开发。
+这是一个自主农药喷洒机器人的全套控制系统。团队完成了从 STM32 底层驱动、ESP32 通信桥接、MaixCam2 视觉识别到 FastAPI + Vue 管理后台的全部开发。
 
 机器人通过 NFC 识别地块，MaixCam2 做 YOLOv5 病虫害检测，三通道蠕动泵按处方配药，基站实时监控整个农场状态。
 
@@ -66,6 +66,3 @@ graph LR
 
 MIT — [LICENSE](LICENSE)
 
----
-
-*本项目由我个人独立设计并开发完成。*
